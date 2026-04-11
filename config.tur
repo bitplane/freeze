@@ -1,0 +1,69 @@
+/* This is a configuration file prototype, copy it to config.h and      */
+/* "#define" appropriate macros if you have problems with "configure".  */
+
+/* define as "int" or "void" */
+#define RETSIGTYPE void
+
+/* define if your computer/system allows unaligned word access          */
+#define ALLOW_MISALIGN
+
+/* define if sizeof(int) == 2                                           */
+#define INT_16_BITS
+
+/* define if your computer cannot handle data items of more than 64K    */
+#define SEGMENTED
+
+/* define if filenames can be of more than 14 chars                     */
+#undef HAVE_LONG_FILE_NAMES
+
+/* define no more than one of, according to your standard #include's    */
+/* if you have <dirent.h>                                               */
+#undef DIRENT
+/* if you have <sys/ndir.h>                                             */
+#undef SYSNDIR
+/* if you have <sys/dir.h>                                              */
+#undef SYSDIR
+
+/* define if you have <sys/stdtypes.h>                                  */
+#undef HAVE_SYS_STDTYPES_H
+
+/* define if you have "rindex" and "setlinebuf" correspondingly         */
+#undef HAVE_RINDEX
+#undef HAVE_SETLINEBUF
+
+/* define no more than one of, according to your standard #include's    */
+/* if you have <utime.h>                                                */
+#undef UTIME
+/* if you have <sys/utime.h>                                            */
+#undef SYSUTIME
+/* if you have "struct timeval" in <sys/time.h>                         */
+#undef SYSTIME
+
+/* BORLAND C has no off_t definition in <sys/types.h>                   */
+#define off_t long
+
+/* define if you want to have freeze compatible with vers. 1.0          */
+#undef COMPAT
+
+/* define if your system has multibyte NEWLINE (as in MS-DOS) and       */
+/* you want to do text conversion by default                            */
+#undef TEXT_DEFAULT
+
+/* define if you want to build freeze in small model  (64K data)        */
+/* (segmented architectures only)                                       */
+#undef TINY
+
+/* override default value because BCC cannot handle 65536 bytes arrays  */
+#define BITS 14
+
+/* define if you want to decrease the amount of memory but without      */
+/* 64K restriction (no sense for 16-bit machines)                       */
+#undef SMALL
+
+/* define to increase the compression speed by about 10% at the cost    */
+/* of some tenths of % compression rate                                 */
+#undef FASTHASH
+
+/* default Huffman values, define if you don't like the default        */
+/* 0,0,1,2,6,19,34,0. These below are reasonably good also.            */
+/* #define HUFVALUES 0,1,1,1,4,10,27,18                                */

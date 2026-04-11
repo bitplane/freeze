@@ -1,0 +1,160 @@
+SHELL         = /bin/sh
+srcdir        = @srcdir@
+VPATH         = $(srcdir)
+
+CC            = @CC@
+CFLAGS        = -I.     # -O2   # for gcc 2.2.2
+
+INSTALL       = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA  = @INSTALL_DATA@
+
+LIBS          = @LIBS@
+OBJ           = o
+EXE           =
+
+.PHONY:         default
+
+default:        prog
+
+# Added the prefix macro, so that it was easier to change installation place.
+prefix        = /usr/local
+DEST          = $(prefix)/bin
+MANDEST       = $(prefix)/man/man1
+SEC           = 1
+
+HDRS          = bitio.h\
+		compat.h\
+		freeze.h\
+		huf.h\
+		lz.h\
+		patchlevel.h
+
+# define DEFFILE as a filename with freeze's default Huffman values
+# e.g. -DDEFFILE=\"/etc/default/freeze\"
+# !!!! NOTE !!!! default is now $(prefix)/lib/freeze.cnf !!!!!
+
+OPTIONS       = -DDEFFILE=\"$(prefix)/lib/freeze.cnf\"
+
+LINTFLAGS     = -DDEBUG -DGATHER_STAT -x -h
+
+MAKEFILE      = makefile
+
+OBJS          = bitio.$(OBJ)\
+		debug.$(OBJ)\
+		decode.$(OBJ)\
+		default.$(OBJ)\
+		encode.$(OBJ)\
+		freeze.$(OBJ)\
+		huf.$(OBJ)\
+		lz.$(OBJ)
+
+CATMAN        = freeze.man statist.man
+
+MAN           = freeze.1 statist.1
+
+SRCS          = bitio.c\
+		debug.c\
+		decode.c\
+		default.c\
+		encode.c\
+		freeze.c\
+		huf.c\
+		lz.c
+
+.SUFFIXES:       .man .1 .$(suffix)
+
+.1.man:
+		nroff -man < $< > $@
+
+.c.$(OBJ):
+		$(CC) -c $(CFLAGS) $(OPTIONS) $<
+
+prog:           freeze$(EXE) statist$(EXE) showhuf$(EXE)
+
+man:            $(CATMAN)
+
+lint:           $(SRCS)
+		lint $(LINTFLAGS) $(SRCS) > lint.out
+
+freeze$(EXE):   $(OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+		-strip $@
+
+statist$(EXE):  statist.$(OBJ) lz.$(OBJ)
+		$(CC) $(LDFLAGS) -o $@ statist.$(OBJ) lz.$(OBJ) $(LIBS)
+		-strip $@
+
+showhuf$(EXE):  showhuf.$(OBJ)
+		$(CC) $(LDFLAGS) -o $@ showhuf.$(OBJ) $(LIBS)
+		-strip $@
+
+clobber:        clean
+		rm -f freeze$(EXE) statist$(EXE) showhuf$(EXE) *.man \#* *~ config.h Makefile
+
+clean:;         rm -f *.$(OBJ) *.b .,* core *.out
+
+install:        $(DEST)/freeze $(DEST)/statist $(MANDEST)/freeze.$(SEC) $(MANDEST)/statist.$(SEC)
+
+patch:;         rm -f patch.out
+		makepatch -manifest MANIFEST -patchlevel patchlev.h ../freeze.distr . > patch.out
+
+$(DEST)/freeze: freeze
+		$(INSTALL_PROGRAM) freeze $@
+		-ln -f $@ $(DEST)/melt
+		-ln -f $@ $(DEST)/unfreeze
+		-ln -f $@ $(DEST)/fcat
+
+$(DEST)/statist: statist
+		$(INSTALL_PROGRAM) statist $@
+
+$(MANDEST)/freeze.$(SEC): freeze.1
+		$(INSTALL_DATA) $(srcdir)/freeze.1 $@
+		-ln -f $@ $(MANDEST)/melt.$(SEC)
+		-ln -f $@ $(MANDEST)/unfreeze.$(SEC)
+		-ln -f $@ $(MANDEST)/fcat.$(SEC)
+# This is much better for places which keep preformated manpages.
+#		echo ".so man1/freeze.$(SEC)" > $(MANDEST)/melt.$(SEC)
+#		echo ".so man1/freeze.$(SEC)" > $(MANDEST)/unfreeze.$(SEC)
+#		echo ".so man1/freeze.$(SEC)" > $(MANDEST)/fcat.$(SEC)
+
+
+$(MANDEST)/statist.$(SEC): statist.1
+		$(INSTALL_DATA) $(srcdir)/statist.1 $@
+
+
+Makefile: $(srcdir)/Makefile.in config.status
+	./config.status
+
+config.h: $(srcdir)/config.h.in config.status
+	./config.status
+
+x286:
+		$(MAKE) prog "CC=cc -LARGE" CFLAGS="-Ox -Ml2" LDFLAGS="-Ml2"
+
+x286install:
+		$(MAKE) install MANDEST=/usr/man/man.C SEC=C
+
+msc:
+		if not exist config.h copy config.msc config.h
+		$(MAKE) prog EXE=.exe OBJ=obj CC="cl" CFLAGS="-Mc -Ox" LDFLAGS="-Mc" LIBS=""
+
+turbo:
+		if not exist config.h copy config.tur config.h
+		$(MAKE) prog EXE=.exe OBJ=obj CC="tcc" CFLAGS="-Ox -Z -G -mc -Ff" LDFLAGS="-mc -Ff" LIBS=""
+
+borland:
+		if not exist config.h copy config.tur config.h
+		$(MAKE) prog EXE=.exe OBJ=obj CC="bcc" CFLAGS="-Ox -Z -G -mc -Ff" LDFLAGS="-mc -Ff" LIBS=""
+
+###
+bitio.$(OBJ):
+debug.$(OBJ): freeze.h compat.h huf.h bitio.h
+decode.$(OBJ): freeze.h compat.h huf.h bitio.h
+default.$(OBJ): freeze.h compat.h
+encode.$(OBJ): freeze.h compat.h lz.h huf.h bitio.h
+freeze.$(OBJ): freeze.h compat.h patchlev.h bitio.h
+huf.$(OBJ): freeze.h compat.h huf.h bitio.h
+lz.$(OBJ): freeze.h compat.h lz.h
+statist.$(OBJ): freeze.h lz.h
+showhuf.$(OBJ): freeze.h huf.h

@@ -1,0 +1,15 @@
+Begin3
+Title:          freeze / melt compression program
+Version:        2.5.0
+Entered-date:   20MAY1999
+Description:    Freeze uses the Lempel-Ziv algorithm on the first pass and
+                the dynamic Huffman algorithm on the second one.
+Keywords:       archiver, uncompress, unpack, data compression
+Author:         leo@ipmce.su
+Maintained-by:  leo@ipmce.su
+Primary-site:   ftp://sunsite.unc.edu/pub/Linux/utils/compress/
+                36kB freeze-2.5.0.tar.gz
+Platforms:      freeze known to run on the following platforms:
+                DOS, OS/2, Unix
+Copying-policy: Unknown.
+End
