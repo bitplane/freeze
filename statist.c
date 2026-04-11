@@ -24,11 +24,16 @@ short   prnt[T];
 ul_t freq[T];
 short used[T];
 
-void freeze(), StartHuff();
+void freeze(void);
+void StartHuff(int beg);
+int findmin(int range);
 
-RETSIGTYPE giveres();
+RETSIGTYPE giveres(int sig);
 
-int main(argc, argv) char ** argv; {
+int main(argc, argv)
+int argc;
+char ** argv;
+{
 	argv++;
 	while (argc > 1) {
 		if (**argv == '-') {
@@ -53,7 +58,7 @@ int main(argc, argv) char ** argv; {
 #endif  /* DOS */
 
 	freeze();
-	giveres();
+	giveres(0);
 	return 0;
 }
 
@@ -93,7 +98,8 @@ it should be 0, but somewhat about 5 or less denotes the given 8 values
 could improve the compression rate when using them.
 */
 
-RETSIGTYPE giveres() {
+RETSIGTYPE giveres(int sig) {
+	(void)sig;
 	us_t c;
 	register int i, j, k, pr, f, average, sum;
 	ul_t cumul, sigma2;
@@ -176,7 +182,7 @@ RETSIGTYPE giveres() {
 	j = sum;
 	percent = 0;
 	for (i = LOOKAHEAD; i >= 3; i--) {
-		static pcs[] = { 999, 995, 990, 970, 950, 900, 800, 700, 500 };
+		static int pcs[] = { 999, 995, 990, 970, 950, 900, 800, 700, 500 };
 		j -= lens[i];
 		newpcs:
 		if (j <= sum * pcs[percent] / 1000) {
@@ -261,7 +267,7 @@ void freeze ()
 		}
 		in_count += i;
 		if ((in_count > indc_count)) {
-			fprintf(stderr, "%5dK\b\b\b\b\b\b", in_count / 1024);
+			fprintf(stderr, "%5ldK\b\b\b\b\b\b", in_count / 1024);
 			fflush (stderr);
 			indc_count += 4096;
 		}
@@ -273,7 +279,9 @@ void freeze ()
 	}
 }
 
-void StartHuff(beg) {
+void StartHuff(beg)
+int beg;
+{
 	int i;
 	for (i = beg; i < N_POS * 2 - 1; i++)
 		freq[i] = 0;
@@ -281,7 +289,9 @@ void StartHuff(beg) {
 		used[i] = prnt[i] = 0;
 }
 
-int findmin(range) {
+int findmin(range)
+int range;
+{
 	long min = (1 << 30) - 1, argmin = -1, i;
 	for (i = 0; i < range; i++) {
 		if(!used[i] && freq[i] < min)

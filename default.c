@@ -10,7 +10,6 @@
 #define NOFILE  ((FILE *) 0)
 #define MAXLINE 128
 
-char            *strchr();
 static FILE     *defd = NOFILE;  /* defaults file stream */
 
 int     defopen(fname)          /* open | reopen | close defaults file */
@@ -37,7 +36,7 @@ static char     defline[MAXLINE + 1];
 char    *defread(pattern)
 	register char   *pattern;
 {
-	register        sz_patt;
+	register int    sz_patt;
 	register char   *cp;
 
 	if (!defd)

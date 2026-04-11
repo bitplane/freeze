@@ -8,6 +8,7 @@
 		  /*---------------------------*/
 void
 printcodes(mode)
+int mode;
 {
     /*
      * Just print out codes from input file.  For debugging.
@@ -58,7 +59,7 @@ pr_char(c)
 	register uc_t c;
 {
 	static char buf[5];
-	register i = 4;
+	register int i = 4;
 	buf[4] = '\0';
 	if ( (isascii((int)c) && isprint((int)c) && c != '\\') || c == ' ' ) {
 	    buf[--i] = c;

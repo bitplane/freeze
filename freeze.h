@@ -1,25 +1,11 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "config.h"
 
 #ifdef HAVE_SYS_STDTYPES_H
 # include <sys/stdtypes.h>
-#endif
-
-#ifndef __EMX__
-#ifndef getc
-# ifdef m88k                   /* Green Hill C library bug. */
-#  define getc(p)         (--(p)->_cnt < 0 ? __filbuf(p) : (int) *(p)->_ptr++)
-# else
-#  define getc(p)         (--(p)->_cnt < 0 ? _filbuf(p) : (int) *(p)->_ptr++)
-# endif
-#endif
-#ifndef putc
-# ifdef m88k                   /* Green Hill C library bug. */
-#  define putc(x, p)      (--(p)->_cnt < 0 ? __flsbuf((unsigned char) (x), (p)) : (int) (*(p)->_ptr++ = (unsigned char) (x)))
-# else
-#  define putc(x, p)      (--(p)->_cnt < 0 ? _flsbuf((unsigned char) (x), (p)) : (int) (*(p)->_ptr++ = (unsigned char) (x)))
-# endif
-#endif
 #endif
 
 #if !defined(MSDOS) && defined(__MSDOS__)
@@ -159,7 +145,12 @@ extern char * pr_char();
 extern long refers_out, symbols_out;
 #endif
 
-extern void melt2(), (*meltfunc)(), writeerr(), prratio(), prbits(), freeze();
+extern void melt2(void);
+extern void (*meltfunc)(void);
+extern void writeerr(void);
+extern void prratio(FILE *stream, long was, long is);
+extern void prbits(FILE *stream, long was, long is);
+extern void freeze(void);
 
 #ifdef COMPAT
 #include "compat.h"
@@ -185,10 +176,5 @@ if (quiet < 0 && (in_count > indc_count)) {\
 	fflush (stderr);\
 }
 
-#ifdef HAVE_RINDEX
-#define strchr index
-#define strrchr rindex
-#endif
-
-extern char *strchr(), *strrchr();
+/* string.h is now included at the top */
 

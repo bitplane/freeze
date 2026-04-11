@@ -1,4 +1,4 @@
-extern void InitTree();
+extern void InitTree(void);
 
 #ifndef SEGMENTED
 # define MAXBITS 16
@@ -127,8 +127,8 @@ extern hash_t hashtab[], next[];
 /* some heuristic to avoid necessity of "-ggg..." */
 #define CHAIN_THRESHOLD (LOOKAHEAD / 2)
 
-extern int get_next_match();
-extern hash_t rehash();
+extern int get_next_match(int match_length, hash_t r);
+extern hash_t rehash(hash_t r);
 
 #ifdef GATHER_STAT
 extern long node_matches, node_compares, node_prolongations;

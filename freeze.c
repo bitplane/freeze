@@ -87,7 +87,7 @@ Usage()
 ");
 }
 
-void    (*meltfunc) ();		/* To call something for melting */
+void    (*meltfunc)(void);	/* To call something for melting */
 
 int     topipe = 0,             /* Write output on stdout, suppress messages */
         precious = 1,		/* Don't unlink output file on interrupt */
@@ -131,9 +131,15 @@ off_t   file_length = 0;	/* initial length of file */
 char IOoutbuf[32768];
 char IOinbuf[32768];
 
-RETSIGTYPE      (*bgnd_flag)();
+RETSIGTYPE      (*bgnd_flag)(int);
 
-void    writeerr(), copystat(), version(), tune_table();
+void    copystat(char *ifname);
+void    version(void);
+void    tune_table(char *type);
+int     checkstat(char *ifname);
+int     foreground(void);
+int     defopen(char *fname);
+char   *defread(char *pattern);
 
 /*****************************************************************
  *
@@ -194,7 +200,7 @@ void    writeerr(), copystat(), version(), tune_table();
 
 /* From compress.c. Replace .Z --> .F etc */
 
-void 
+int
 main(argc, argv)
 int argc;
 char  **argv;
@@ -210,16 +216,14 @@ char  **argv;
 
 #endif
 
-#ifndef DOS
-  char   *malloc();
-#endif
+  /* stdlib.h provides malloc() */
 
-  extern RETSIGTYPE onintr();
+  extern RETSIGTYPE onintr(int sig);
 
 #ifdef DOS
   char   *sufp;
 #else
-  extern RETSIGTYPE oops();
+  extern RETSIGTYPE oops(int sig);
 #endif
 
 #ifdef __EMX__
@@ -957,8 +961,9 @@ foreground()
 /* Exception handler (SIGINT) */
 
 RETSIGTYPE
-onintr()
+onintr(int sig)
 {
+  (void)sig;
   if (!precious) {		/* topipe == 1 implies precious == 1 */
     (void) fclose(stdout);
     (void) unlink(ofname);
@@ -968,8 +973,9 @@ onintr()
 /* Exception handler (SIGSEGV) */
 
 RETSIGTYPE
-oops()
+oops(int sig)
 {				/* file is corrupt or internal error */
+  (void)sig;
   (void) fflush(stdout);
   fprintf(stderr, "Segmentation violation occured (this shouldn't happen)\n");
   exit(1);
@@ -1015,7 +1021,6 @@ void
 tune_table(type)
 char   *type;
 {
-  extern char *defread();
   register char *s = defread(type), *t;
   static int v[8];
   int     i, is_list = 0;

@@ -1,14 +1,15 @@
 #include "freeze.h"
-#include "huf.h"
 
 uc_t Table2[9];
+static int read_header(void);
 
 /* prints out Huffman information from a frozen file, just for fun
  * and testing purposes.
  */
 
 int main(argc, argv)
-int argc; char ** argv;
+int argc;
+char ** argv;
 {
 	if (argc != 2) {
 		fprintf(stderr, "Usage: showhuf frozen_file\n");
@@ -56,7 +57,7 @@ int argc; char ** argv;
 	its correctness. Returns 0 if OK, EOF otherwise.
 */
 
-int read_header() {
+static int read_header() {
 	short i, j;
 	i = getchar() & 0xFF;
 	i |= (getchar() & 0xFF) << 8;

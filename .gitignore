@@ -1,0 +1,9 @@
+
+freeze
+showhuf
+statist
+
+Makefile
+config.h
+config.status
+*.o

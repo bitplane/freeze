@@ -280,7 +280,7 @@ int DecodeChar ()
 
 int DecodePosition ()
 {
-	register        i, j;
+	register int    i, j;
 	DefBits;
 
 	/* Upper 6 bits can be coded by a byte (8 bits) or less,
@@ -289,7 +289,7 @@ int DecodePosition ()
 	FillBits();
 	/* decode upper 6 bits from the table */
 	i = GetByte();
-	j = (code[i] << 7) | (i << d_len[i]) & 0x7F;
+	j = (code[i] << 7) | ((i << d_len[i]) & 0x7F);
 
 	/* get lower 7 bits literally */
 #ifdef INT_16_BITS
@@ -310,12 +310,12 @@ uc_t Table1[9] = { 0, 0, 0, 1, 3, 8, 12, 24, 16 };
 
 short DecodePOld ()
 {
-	register        i, j;
+	register int    i, j;
 	DefBits;
 
 	FillBits();
 	i = GetByte();
-	j = (code[i] << 6) | (i << d_len[i]) & 0x3F;
+	j = (code[i] << 6) | ((i << d_len[i]) & 0x3F);
 #ifdef INT_16_BITS
 	FillBits();
 #endif
