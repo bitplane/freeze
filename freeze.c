@@ -100,7 +100,7 @@ char    ofname[MAXNAMLEN];
 static struct stat statbuf;	/* Used by 'main' and 'copystat' routines */
 
 #if defined(DOS) || defined(_WIN32) || defined(__AROS__)
-char   *last_sep();		/* last slash, backslash, or colon */
+char   *last_sep(char *s);	/* last slash, backslash, or colon */
 #endif
 #ifdef DOS
 char    tail[3];		/* 2nd and 3rd chars of file extension */
@@ -1084,9 +1084,7 @@ char   *type;
   Find the last of these.
 */
 
-char   *
-last_sep(s)
-register char *s;
+char *last_sep(char *s)
 {
   char   *p;
   for (p = NULL; *s; s++)
