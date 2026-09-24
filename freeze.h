@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef _WIN32
+# include <fcntl.h>
+# include <io.h>
+#endif
 #include "config.h"
 
 #ifdef HAVE_SYS_STDTYPES_H
@@ -177,4 +181,3 @@ if (quiet < 0 && (in_count > indc_count)) {\
 }
 
 /* string.h is now included at the top */
-

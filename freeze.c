@@ -99,16 +99,20 @@ int     topipe = 0,             /* Write output on stdout, suppress messages */
 char    ofname[MAXNAMLEN];
 static struct stat statbuf;	/* Used by 'main' and 'copystat' routines */
 
-#ifdef DOS
+#if defined(DOS) || defined(_WIN32) || defined(__AROS__)
 char   *last_sep();		/* last slash, backslash, or colon */
+#endif
+#ifdef DOS
 char    tail[3];		/* 2nd and 3rd chars of file extension */
 # ifdef TEXT_DEFAULT
 unsigned        image = O_TEXT;
 # else
 unsigned        image = O_BINARY;
 # endif
-#else
+#elif !defined(_WIN32) && !defined(__AROS__)
 #  define last_sep(s) strrchr((s), '/')	/* Unix always uses slashes */
+#endif
+#ifndef DOS
 #  ifndef DEFFILE
 #   define DEFFILE "/usr/local/lib/freeze.cnf"
 #  endif
@@ -210,6 +214,12 @@ char  **argv;
   char  **filelist, **fileptr;
   char   *cp;
 
+#ifdef _WIN32
+  /* Windows opens redirected standard streams in text mode by default. */
+  _setmode(_fileno(stdin), _O_BINARY);
+  _setmode(_fileno(stdout), _O_BINARY);
+#endif
+
 #ifdef TOS
 
   char   *argv0 = "freeze.ttp";	/* argv[0] is not defined :-( */
@@ -277,7 +287,11 @@ char  **argv;
   if (!stricmp(cp, "unfreeze.ttp") || !stricmp(cp, "melt.ttp")) {
 #endif
 #else
-  if (!strcmp(cp, "unfreeze") || !strcmp(cp, "melt")) {
+  if (!strcmp(cp, "unfreeze") || !strcmp(cp, "melt")
+#ifdef _WIN32
+      || !strcmp(cp, "unfreeze.exe") || !strcmp(cp, "melt.exe")
+#endif
+      ) {
 #endif
 
     do_melt = 1;
@@ -516,8 +530,6 @@ char  **argv;
 	    *fileptr);
 	  continue;
 	}
-
-                setvbuf(stdin, IOinbuf, _IOFBF, sizeof(IOinbuf));
 
       /* Generate output filename */
 	precious = 1;
@@ -858,7 +870,7 @@ char   *ifname;
     if (chmod(ofname, mode))	/* Copy modes */
       perror(ofname);
 #endif
-#ifndef DOS
+#if !defined(DOS) && !defined(_WIN32)
   /* Copy ownership */
     (void) chown(ofname, (int) statbuf.st_uid, (int) statbuf.st_gid);
 #endif
@@ -1065,7 +1077,7 @@ char   *type;
     fprintf(stderr, "Using \"%s%s\" type\n", type, t);
   }
 }
-#ifdef DOS
+#if defined(DOS) || defined(_WIN32) || defined(__AROS__)
 
 /* MSDOS typically has ':' and '\\' separators, but some command
   processors (and the int 21h function handler) support '/' too.
