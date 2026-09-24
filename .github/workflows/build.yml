@@ -1,0 +1,120 @@
+name: Build and release
+
+on:
+  push:
+    branches: [master]
+    tags: ['*']
+  pull_request:
+
+permissions: {}
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            runner: ubuntu-24.04
+          - target: macos-arm64
+            runner: macos-15
+          - target: windows-x86_64
+            runner: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: UCRT64
+          install: >-
+            make
+            diffutils
+            mingw-w64-ucrt-x86_64-gcc
+      - name: Build and test
+        if: runner.os != 'Windows'
+        run: sh scripts/ci-build.sh '${{ matrix.target }}'
+      - name: Build and test
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: sh scripts/ci-build.sh '${{ matrix.target }}'
+      - name: Upload release binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v7
+        with:
+          name: freeze-${{ github.ref_name }}-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  aros-build:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: i386-aros
+            toolbox: aros/2026-08-31/i386:v0.1.1
+          - target: aarch64-aros
+            toolbox: aros/2026-08-31/aarch64:v0.1.1
+          - target: x86_64-aros
+            toolbox: aros/2026-08-31/x86_64:v0.1.8
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build with Mountin AROS compiler
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOOLBOX: ${{ matrix.toolbox }}
+        run: |
+          image="ghcr.io/bitplane/mountin/builder/compiler/$TOOLBOX"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io \
+              --username "$GITHUB_ACTOR" --password-stdin
+          docker pull "$image"
+          docker run --rm --volume "$PWD:/work" --workdir /work \
+              "$image" sh scripts/ci-build.sh '${{ matrix.target }}'
+      - name: Package AROS release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: sh scripts/aros/package.sh '${{ matrix.target }}' "${GITHUB_REF_NAME#v}"
+      - name: Upload AROS release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v7
+        with:
+          name: freeze-${{ github.ref_name }}-${{ matrix.target }}
+          path: dist/*.tar.bz2*
+          if-no-files-found: error
+
+  release:
+    needs: [build, aros-build]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.tar.bz2
+            artifacts/**/*.sha256
+
+  sync-pkg:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+    uses: ./.github/workflows/sync-aros.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      AROS_PKG_KEY: ${{ secrets.AROS_PKG_KEY }}

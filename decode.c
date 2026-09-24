@@ -79,6 +79,8 @@ void melt2 ()
 		if (ferror(stdout))
 			writeerr();
 	}
+	if (fflush(stdout) == EOF)
+		writeerr();
 	if (quiet < 0 && file_length != 0)
 		fprintf(stderr, "100%%\b\b\b\b");
 }
@@ -153,5 +155,7 @@ void melt1 ()
 		if (ferror(stdout))
 			writeerr();
 	}
+	if (fflush(stdout) == EOF)
+		writeerr();
 }
 #endif
